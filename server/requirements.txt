@@ -1,0 +1,5 @@
+Flask
+gunicorn
+minio
+python-docx
+requests

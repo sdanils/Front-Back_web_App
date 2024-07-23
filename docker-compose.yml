@@ -1,0 +1,46 @@
+version: '3.9'
+
+services:
+  gen_nginx:
+    restart: always
+    build: ./frontend_nginx
+    container_name: nginx_interview_trn
+    expose:
+      - 82
+    ports:
+      - "82:82"
+
+  gen_python:
+    restart: always
+    build: ./server
+    container_name: python_interview_trn
+    expose:
+      - 5000
+    ports:
+      - "5000:5000"
+    environment:
+      SERVER_APP: server.py
+    command: ["gunicorn", "-w", "20", "-t", "1200", "-b", "0.0.0.0:5000", "server:app"]
+
+  gen_neuro_server:
+    restart: always
+    build: ./neuro_server
+    container_name: neuro_interview_trn
+    expose:
+      - 5001
+    ports:
+      - "5001:5001"
+    environment:
+      SERVER_NEURO_APP: listener.py
+    command: ["gunicorn", "-w", "2","-t", "1200", "-b", "0.0.0.0:5001", "listener:app"]
+    depends_on:
+      - gen_python
+    privileged: true
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    
